@@ -30,9 +30,13 @@ const HandOffPOC = async () => {
     });
 
     let rawTransaction = obj.raw
-    
-    console.log(rawTransaction)
+
+    await contractInstance.methods.storeTransactions(rawTransaction).send({
+        from: accountAddress,
+        gas: '1000000'
+    })
 }
+
 
 HandOffPOC()
 
