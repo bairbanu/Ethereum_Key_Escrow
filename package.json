@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "db:setup": "createdb handoff || psql -d handoff < ./database/schema.sql",
+    "step1": "db:setup && node createStorage.js 'Hello, world!'"
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
