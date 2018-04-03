@@ -1,15 +1,48 @@
 const Web3 = require('web3')
 const web3 = new Web3('http://localhost:8545')
+const EthCrypto = require('eth-crypto')
+
+const db = require('./database/connection')
 
 // Update address with what is spit onto the geth console when deployed from Remix
-const contractAddress = '0xd2f16724283bc3e45e89b4148d204a1b63220e45'
-const ABI = [ { constant: false, inputs: [ { name: "rawTransaction", type: "string" } ], name: "storeTransactions", outputs: [], payable: false, stateMutability: "nonpayable", type: "function" }, { constant: true, inputs: [ { name: "", type: "uint256" } ], name: "keyEscrows", outputs: [ { name: "", type: "string" } ], payable: false, stateMutability: "view", type: "function" } ]
+const contractAddress = "0xC660eB0D4052a5b26ed08948590c3E582818f44e";
+const ABI = [ { constant: true, inputs: [], name: "keyEscrow", outputs: [ { name: "", type: "string" } ], payable: false, stateMutability: "view", type: "function" }, { constant: false, inputs: [ { name: "rawTransaction", type: "string" } ], name: "storeTransactions", outputs: [], payable: false, stateMutability: "nonpayable", type: "function" } ]
 
 const createStorage = async () => {
-    // data to encryt and cold store in the smart contract
+    // Data to encryt and cold store in the smart contract
     const data = process.argv[2]
 
-    // connect with smart contract
+    // Create sender and recipent identities
+    const sender = EthCrypto.createIdentity()
+    const recipient = EthCrypto.createIdentity()
+
+    // console.log('Saving keys to database...')
+
+    // const savingKeys = ['sender', sender.address, sender.publicKey, sender.privateKey, 'recipient', recipient.address, recipient.publicKey, recipient.privateKey]
+    // await db.none('INSERT INTO key_storage VALUES ($1, $2, $3, $4), ($5, $6, $7, $8)', savingKeys)
+
+    // console.log('Keys saved in database.')
+
+    // Encrypt data
+    const signature = EthCrypto.sign(
+        sender.privateKey,
+        EthCrypto.hash.keccak256(data)
+    )
+
+    const payload = {
+        message: data,
+        signature
+    }
+
+    const encrytedData = await EthCrypto.encryptWithPublicKey(
+        recipient.publicKey,
+        JSON.stringify(payload)
+    )
+
+    const encrytedStringData = JSON.stringify(encrytedData)
+    const encrytedHexData = web3.utils.asciiToHex(encrytedStringData)
+
+    // Connect with smart contract
     const contractInstance = await new web3.eth.Contract(ABI, contractAddress)
     
     // Acccount information
@@ -26,21 +59,17 @@ const createStorage = async () => {
     gas: "1000000",
     to: recipientAddress,
     value: "1000000000000000000",
-    data: privateKeyToSave,
+    data: encrytedHexData,
     nonce: "12"
     });
 
     let rawTransaction = obj.raw
+    console.log('this is the raw transaction:::', rawTransaction)
 
-    await contractInstance.methods.storeTransactions(rawTransaction).send({
-        from: accountAddress,
-        gas: '1000000'
-    })
+    // await contractInstance.methods.storeTransactions(rawTransaction).send({
+    //     from: accountAddress,
+    //     gas: '1000000'
+    // })
 }
 
-
 createStorage()
-
-
-// send it to smart contract for storage
-// We're at keyEscrows[1]
