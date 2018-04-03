@@ -21,12 +21,12 @@ const createStorage = async () => {
     const sender = EthCrypto.createIdentity()
     const recipient = EthCrypto.createIdentity()
 
-    console.log('Saving keys to database...')
+    // console.log('Saving keys to database...')
 
-    const savingKeys = ['sender', sender.address, sender.publicKey, sender.privateKey, 'recipient', recipient.address, recipient.publicKey, recipient.privateKey]
-    await db.none('INSERT INTO key_storage VALUES ($1, $2, $3, $4), ($5, $6, $7, $8)', savingKeys)
+    // const savingKeys = ['sender', sender.address, sender.publicKey, sender.privateKey, 'recipient', recipient.address, recipient.publicKey, recipient.privateKey]
+    // await db.none('INSERT INTO key_storage VALUES ($1, $2, $3, $4), ($5, $6, $7, $8)', savingKeys)
 
-    console.log('Keys saved in database.')
+    // console.log('Keys saved in database.')
 
     // Encrypt data
     console.log(`Encrypting and signing data::: ${data}`)
@@ -47,38 +47,46 @@ const createStorage = async () => {
         JSON.stringify(payload)
     )
 
-    const encrytedStringData = JSON.stringify(encrytedData)
-    const encrytedHexData = web3.utils.asciiToHex(encrytedStringData)
+    // const encrytedStringData = JSON.stringify(encrytedData)
+    // const encrytedHexData = web3.utils.asciiToHex(encrytedStringData)
+
+    const decrypted = await EthCrypto.decryptWithPrivateKey(
+        recipient.privateKey,
+        encrytedData
+    )
+
+    console.log(decrypted)
+
 
     // Connect with smart contract
-    const contractInstance = await new web3.eth.Contract(ABI, contractAddress)
+    // const contractInstance = await new web3.eth.Contract(ABI, contractAddress)
     
-    // Acccount information
-    const accountAddress = "0x421d17d3a56c3312013f13f76ee01ee74d5de6b8"
-    const accountPrivateKey = "79541ca33808c4ce0a3893c092880ab79ee9c56fdce4d4d4d09f5a31acb837c7"
+    // // Acccount information
+    // const accountAddress = "0x421d17d3a56c3312013f13f76ee01ee74d5de6b8"
+    // const accountPrivateKey = "79541ca33808c4ce0a3893c092880ab79ee9c56fdce4d4d4d09f5a31acb837c7"
     
-    console.log('Creating cold transaction...')
+    // console.log('Creating cold transaction...')
 
-    const obj = await web3.eth.signTransaction({
-    from: accountAddress,
-    gasPrice: "20000000000",
-    gas: "1000000",
-    to: recipientAddress,
-    value: "1000000000000000000",
-    data: encrytedHexData,
-    nonce: "12"
-    });
+    // const obj = await web3.eth.signTransaction({
+    // from: accountAddress,
+    // gasPrice: "20000000000",
+    // gas: "1000000",
+    // to: recipientAddress,
+    // value: "1000000000000000000",
+    // data: encrytedHexData,
+    // nonce: "12"
+    // });
 
-    let rawTransaction = obj.raw
+    // let rawTransaction = obj.raw
 
-    console.log('Storing data securely on smart contract...')
+    // console.log('Storing data securely on smart contract...')
 
-    await contractInstance.methods.storeTransactions(rawTransaction).send({
-        from: accountAddress,
-        gas: '1000000'
-    })
+    // await contractInstance.methods.storeTransactions(rawTransaction).send({
+    //     from: accountAddress,
+    //     gas: '1000000'
+    // })
 
-    console.log('Data stored securely on smart contract at address:', contractAddress)
+    // console.log('Data stored securely on smart contract at address:', contractAddress)
 }
 
 createStorage()
