@@ -4,6 +4,7 @@
   "description": "A project to explore key escrow.",
   "main": "index.js",
   "scripts": {
+    "db:setup": "createdb handoff || psql -d handoff < ./database/schema.sql",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,9 +19,8 @@
   },
   "homepage": "https://github.com/zubairnahmed/Ethereum_Key_Escrow#readme",
   "dependencies": {
-    "ethereumjs-tx": "^1.3.4",
-    "keythereum": "^1.0.2",
-    "openpgp": "^3.0.3",
+    "eth-crypto": "^0.4.0",
+    "pg-promise": "^8.2.2",
     "web3": "^1.0.0-beta.33"
   }
 }
